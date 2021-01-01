@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -z "${PORTAGE_ROOT}" ]; then
+  echo "PORTAGE_ROOT not set" >&2
+  exit 1
+fi
+
+if [ -z "${TRAVIS_BUILD_DIR}" ]; then
+  echo "TRAVIS_BUILD_DIR not set" >&2
+  exit 1
+fi
+
+if [ -z "${TRAVIS_REPO_SLUG}" ]; then
+  echo "TRAVIS_REPO_SLUG not set" >&2
+  exit 1
+fi
+
+PORTAGE_PROFILE_VERSION="${PORTAGE_PROFILE_VERSION:-17.1}"
+PORTAGE_PROFILE_ARCH="${PORTAGE_PROFILE_ARCH:-${TRAVIS_CPU_ARCH}}"
+
+if [ -z "${PORTAGE_PROFILE_ARCH}" ]; then
+  echo "PORTAGE_PROFILE_ARCH not set and TRAVIS_CPU_ARCH is empty" >&2
+  exit 1
+fi
+
+gentoo_tree_dir="${PORTAGE_ROOT}/usr/portage"
+mkdir --parents "${gentoo_tree_dir}"
+curl --location --silent "https://github.com/gentoo-mirror/gentoo/archive/master.tar.gz" \
+  | tar --extract --gzip --directory="${gentoo_tree_dir}" --strip-components=1
+
+portage_conf_dir="${PORTAGE_ROOT}/etc/portage"
+mkdir --parents "${portage_conf_dir}/repos.conf"
+
+cat >"${portage_conf_dir}/repos.conf/gentoo.conf" <<_EOF_
+[DEFAULT]
+main-repo = gentoo
+
+[gentoo]
+location = ${gentoo_tree_dir}
+_EOF_
+
+repository_name="$(echo "${TRAVIS_REPO_SLUG}" | cut --delimiter='/' --fields=2)"
+cat >"${portage_conf_dir}/repos.conf/${repository_name}.conf" <<_EOF_
+[${repository_name}]
+location = ${TRAVIS_BUILD_DIR}
+_EOF_
+
+cat >"${portage_conf_dir}/make.conf" <<_EOF_
+PORTAGE_TMPDIR="$(mktemp --directory)"
+PKGDIR="$(mktemp --directory)"
+DISTDIR="$(mktemp --directory)"
+RPMDIR="$(mktemp --directory)"
+_EOF_
+
+profile_path="${gentoo_tree_dir}/profiles/default/linux/${PORTAGE_PROFILE_ARCH}/${PORTAGE_PROFILE_VERSION}"
+if [ ! -d "${profile_path}" ]; then
+  echo "profile not found: ${profile_path}" >&2
+  exit 1
+fi
+ln --symbolic "${profile_path}" "${portage_conf_dir}/make.profile"
