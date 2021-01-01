@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -z "${GITHUB_GRAPHQL_QUERY_TOKEN}" ]; then
+  echo "GITHUB_GRAPHQL_QUERY_TOKEN not set" >&2
+  exit 1
+fi
+
+response="$(curl --silent --show-error --fail \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer ${GITHUB_GRAPHQL_QUERY_TOKEN}" \
+  --request POST \
+  --data '{
+            "query": "{ repository(owner: \"gentoo\", name: \"portage\") { refs(refPrefix: \"refs/tags/\", first: 20, orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) { edges { node { name } } } } }"
+          }' \
+  https://api.github.com/graphql)"
+
+latest_version="$(echo "${response}" \
+  | jq -r '.data.repository.refs.edges[].node.name' \
+  | sed -n 's/^portage-//p' \
+  | sort --version-sort --reverse \
+  | head -n 1)"
+
+if [ -z "${latest_version}" ]; then
+  echo "could not determine latest portage version from GitHub response" >&2
+  exit 1
+fi
+
+echo "${latest_version}"
