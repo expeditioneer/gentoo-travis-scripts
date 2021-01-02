@@ -17,7 +17,7 @@ These scripts can be used with Travis CI in an custom gentoo overlay.
 Here is this repo cloned in .travis-scripts directory of the overlay:
  
 ```shell script
-dist: bionic
+dist: focal
 
 language: python
 
