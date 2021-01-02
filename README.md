@@ -47,9 +47,6 @@ before_script:
 script:
   - repoman full --include-dev
 
-after_success:
-  - bash <(curl --silent https://copilot.blackducksoftware.com/ci/travis/scripts/upload)
-
 notifications:
   email:
     on_failure: change
