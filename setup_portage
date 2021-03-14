@@ -21,7 +21,7 @@ main-repo = gentoo
 location = ${gentoo_tree_dir}
 _EOF_
 
-repository_name="$(echo ${TRAVIS_REPO_SLUG} | cut -d'/' -f 2)"
+repository_name="$(grep -Po "(?<=^repo-name\s=\s).*" metadata/layout.conf)"
 cat >"${portage_conf_dir}/repos.conf/${repository_name}.conf" <<_EOF_
 [${repository_name}]
 location = ${TRAVIS_BUILD_DIR}
