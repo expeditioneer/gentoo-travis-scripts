@@ -12,11 +12,6 @@ if [ -z "${TRAVIS_BUILD_DIR}" ]; then
   exit 1
 fi
 
-if [ -z "${TRAVIS_REPO_SLUG}" ]; then
-  echo "TRAVIS_REPO_SLUG not set" >&2
-  exit 1
-fi
-
 PORTAGE_PROFILE_VERSION="${PORTAGE_PROFILE_VERSION:-17.1}"
 PORTAGE_PROFILE_ARCH="${PORTAGE_PROFILE_ARCH:-${TRAVIS_CPU_ARCH}}"
 
@@ -41,7 +36,18 @@ main-repo = gentoo
 location = ${gentoo_tree_dir}
 _EOF_
 
-repository_name="$(echo "${TRAVIS_REPO_SLUG}" | cut --delimiter='/' --fields=2)"
+layout_conf="${TRAVIS_BUILD_DIR}/metadata/layout.conf"
+if [ ! -f "${layout_conf}" ]; then
+  echo "metadata/layout.conf not found in ${TRAVIS_BUILD_DIR}" >&2
+  exit 1
+fi
+
+repository_name="$(awk -F '[[:space:]]*=[[:space:]]*' '/^repo-name[[:space:]]*=/{print $2; exit}' "${layout_conf}")"
+if [ -z "${repository_name}" ]; then
+  echo "repo-name missing from ${layout_conf}" >&2
+  exit 1
+fi
+
 cat >"${portage_conf_dir}/repos.conf/${repository_name}.conf" <<_EOF_
 [${repository_name}]
 location = ${TRAVIS_BUILD_DIR}
