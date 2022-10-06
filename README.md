@@ -1,3 +1,7 @@
+**DEPRECATED**
+
+No longer maintained. I switched to github actions.
+
 # gentoo travis ci scripts
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8bd9b0190db548c89437de3ec6aff946)](https://app.codacy.com/gh/expeditioneer/gentoo-travis-scripts?utm_source=github.com&utm_medium=referral&utm_content=expeditioneer/gentoo-travis-scripts&utm_campaign=Badge_Grade)
