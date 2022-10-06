@@ -1,3 +1,11 @@
+> **⚠️ Archived — no longer maintained.**
+> Travis CI is no longer used for the overlays this repository was built for;
+> the workflow has moved to GitHub Actions. The scripts are kept here for
+> reference and may become outdated as Portage and the Gentoo profile layout
+> evolve. Use at your own risk.
+
+---
+
 # gentoo-travis-scripts
 
 Helper scripts that bootstrap a Portage environment inside a [Travis CI][travis]
